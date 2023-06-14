@@ -3,7 +3,6 @@
 const User = require('../models/user');
 const Product = require('../models/product');
 
-
 // Utilise la méthode find() afin de récupérer tous les utilisateurs
 exports.getUsers = (req, res, next) => {
     User.find() 
@@ -57,8 +56,6 @@ exports.getUsers = (req, res, next) => {
 
 };
     
-
-  
   // Met à jour un utilisateur  
   exports.updateUser = (req, res, next) => {
     const userId = req.params.id; 
@@ -98,23 +95,18 @@ exports.getUsers = (req, res, next) => {
   // Supprime un utilisateur
   exports.deleteUser = (req, res, next) => {
     const userId = req.params.userId;
-    const connectedUserId = req.user.id;
+    
   
-    if (userId !== connectedUserId) {
-      return res.status(401).json({ message: 'Vous n\'êtes pas autorisé à supprimer cet utilisateur' });
-    }
     User.findByIdAndDelete(userId)
       .then(deletedUser => {
         if (!deletedUser) {
-          
-          return res.status(404).json({ message: 'Utilisateur introuvable' });
+          return res.status(404).json({ message: "Utilisateur introuvable" });
         }
-        return res.status(201).json({ message: 'Utilisateur supprimé avec succès' });
+        return res.status(204).json({ message: "Utilisateur supprimé avec succès" });
       })
       .catch(err => {
-        
         console.error(err);
-        return res.status(500).json({ message: 'Erreur serveur' });
+        return res.status(500).json({ message: "Erreur serveur" });
       });
   };
 
@@ -144,12 +136,11 @@ exports.getUsers = (req, res, next) => {
       });
   };
 
-  // /users/cart => PUT
+  // /cart => PUT
   exports.updateUserCart = (req, res, next) => {
-    const userId = req.params.id;
-    const loggedInUserId = req.userId;
+    const loggedInUserId = req.user.userId;
   
-    if (userId !== loggedInUserId) {
+    if (!loggedInUserId) {
       return res.status(403).json({ message: "Vous n'êtes pas autorisé à modifier le panier de cet utilisateur." });
     }
   
@@ -158,34 +149,53 @@ exports.getUsers = (req, res, next) => {
     if (!productId) {
       return res.status(400).json({ message: "Vous devez fournir un ID de produit." });
     }
-  
-    // Effectuer les opérations nécessaires pour mettre à jour le panier de l'utilisateur avec le produit donné (par exemple, ajouter le produit au panier)
-  
-    return res.status(200).json({ message: "Produit ajouté au panier avec succès." });
-  };
     
+    User.findById(loggedInUserId)
+      .then(user => {
         
-
-    
-  
-
-
-      
-      
-
-    // /users/cart => DELETE
+        if (user.cart.includes(productId)) {
+           
+          return res.status(200).json({ message: "Le produit est déjà présent dans le panier." });
+        }
+        return Product.findByIdAndUpdate(productId, { isSold: true }, { new: true })
+        .then(updatedProduct => {
+          if (!updatedProduct) {
+            return res.status(404).json({ message: "Produit non trouvé." });
+          }
+        user.cart.push(productId);
+        
+        return user.save();
+        
+      })  
+      .then(() => {
+        res.status(200).json({ message: "Produit ajouté au panier avec succès." });
+      })
+      .catch((error) => {
+        res.status(500).json({ message: "Une erreur s'est produite lors de la mise à jour du panier de l'utilisateur.", error: error });
+      });
+  })
+  };
+         
+    // /cart => DELETE
     exports.deleteUserCart = (req, res, next) => {
-      if (!req.user || !req.user.id) {
-        return res.status(401).json({ message: "Vous n'êtes pas authentifié." });
-      }
-      
-      // Récupération des identifiants de l'utilisateur et du produit
-      const userId = req.user.id;
+      const userId = req.user.userId;
       const productId = req.params.productId;
-      
-      // Suppression du produit du panier de l'utilisateur
-      removeFromUserCart(userId, productId);
-      
-      // Réponse indiquant la suppression réussie
-      res.status(201).json({ message: "Produit supprimé du panier avec succès." })
+    
+      User.findById(userId)
+        .then(user => {
+          if (!user) {
+            return res.status(404).json({ message: "Utilisateur non trouvé." });
+          }
+          const cartIndex = user.cart.indexOf(productId);
+          user.cart.splice(cartIndex, 1);
+    
+          return user.save();
+        })
+        .then(() => {
+          res.status(204).json({ message: "Produit supprimé du panier avec succès." });
+        })
+        .catch((error) => {
+          console.error("Erreur lors de la suppression du produit du panier de l'utilisateur :", error);
+          res.status(500).json({ message: "Une erreur s'est produite lors de la suppression du produit du panier de l'utilisateur." });
+        });
     };

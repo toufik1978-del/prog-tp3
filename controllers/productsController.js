@@ -1,5 +1,5 @@
  "use strict";
-const categorie = require('../models/categorie');
+
 // Récupère le modèle Product
 const Product = require('../models/product');
 

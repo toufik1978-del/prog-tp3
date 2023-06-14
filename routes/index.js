@@ -27,14 +27,14 @@ router.put('/users/:userId', isAuth, usersController.updateUser);
 // /users/userId => DELETE
 router.delete('/users/:userId', isAuth, usersController.deleteUser);
 
-// /users/cart => GET
+// /users/:userId/cart => GET
 router.get('/users/:userId/cart', isAuth, usersController.getUserCart);
 
-// /users/cart => Put
-router.put('/cart/:userId', isAuth, usersController.updateUserCart);
+// /cart => Put
+router.put('/cart', isAuth, usersController.updateUserCart);
 
-// /users/cart => DELETE
-router.delete('/cart/:productId', isAuth, usersController.deleteUserCart);
+// /cart => DELETE
+router.delete('/cart', isAuth, usersController.deleteUserCart);
 
 // /products => GET
 router.get('/products', productsController.getProducts);
@@ -64,7 +64,7 @@ router.post('/categories', isAuth, categoriesController.createCategorie);
 router.put('/categories/:categorieId', isAuth, categoriesController.updateCategorie);
 
 // /categories/:categorieId => DELETE
-router.delete('/categories/:categorieId', isAuth, categoriesController.deleteCategorie);
+router.delete('/categories', isAuth, categoriesController.deleteCategorie);
 
 // /search => GET
 router.get('/search', searchController.searchProduct);
