@@ -41,17 +41,20 @@ exports.getUsers = (req, res, next) => {
   
    // /users/profil => GET
  exports.getUserProfil = (req, res, next) => {
-  const userProfil = {
-    email: req.user.email,
-    firstname: req.user.firstname,
-    lastname: req.user.lastname,
-    isAdmin: req.user.isAdmin,
-    pasword: req.user.password,
-    city: req.user.city,
-    cart: req.user.cart
-  };
+  const userId = req.user.userId;
+  console.log(userId)
+  User.findById(userId)
+  .then(user => {
+    res.status(200).json({
+      user: user
+    });
+  })
+  .catch(err => {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+  });
 
-  res.status(200).json({ user: userProfil });
 };
     
 
@@ -106,7 +109,7 @@ exports.getUsers = (req, res, next) => {
           
           return res.status(404).json({ message: 'Utilisateur introuvable' });
         }
-        return res.status(200).json({ message: 'Utilisateur supprimé avec succès' });
+        return res.status(201).json({ message: 'Utilisateur supprimé avec succès' });
       })
       .catch(err => {
         
@@ -115,48 +118,74 @@ exports.getUsers = (req, res, next) => {
       });
   };
 
-  // /users/cart => GET
+  // /cart => GET
   exports.getUserCart = (req, res, next) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: "Vous n'êtes pas authentifié." });
-    }
-    const userId = req.user.id;
-    const userCart = retrieveUserCart(userId);
-    if (!userCart) {
-      return res.status(404).json({ message: "Le panier de l'utilisateur n'a pas été trouvé." });
-    }
-    res.status(200).json({ cart: userCart });
+    const userId = req.params.userId;
+    console.log(userId);
+    User.findById(userId)
+    .populate('cart.productId') 
+      .then(user => {
+        if (!user) {
+          const error = new Error('Utilisateur non trouvé');
+          error.statusCode = 404;
+          throw error;
+        }
+        const userCart = user.cart;
+  
+        res.status(200).json({
+          user: userCart
+        });
+      })
+      .catch(err => {
+        if (!err.statusCode) {
+          err.statusCode = 500;
+        }
+        next(err);
+      });
   };
 
   // /users/cart => PUT
   exports.updateUserCart = (req, res, next) => {
-    const userId = req.user.id;
-      const productId = req.body.productId;
-      if (!req.isAuthenticated()) {
-        return res.status(401).json({ message: "Vous n'êtes pas authentifié." });
-      }
+    const userId = req.params.id;
+    const loggedInUserId = req.userId;
+  
+    if (userId !== loggedInUserId) {
+      return res.status(403).json({ message: "Vous n'êtes pas autorisé à modifier le panier de cet utilisateur." });
+    }
+  
+    const productId = req.body.productId;
+  
+    if (!productId) {
+      return res.status(400).json({ message: "Vous devez fournir un ID de produit." });
+    }
+  
+    // Effectuer les opérations nécessaires pour mettre à jour le panier de l'utilisateur avec le produit donné (par exemple, ajouter le produit au panier)
+  
+    return res.status(200).json({ message: "Produit ajouté au panier avec succès." });
+  };
+    
+        
+
+    
+  
+
+
       
-      Product.updateOne({ _id: productId }, { isSold: true })
-        .then(() => {
-          
-          addToUserCart(userId, productId);
-          res.status(200).json({ message: "Produit ajouté au panier avec succès." });
-        })
-        .catch((error) => {
-         
-          res.status(500).json({ message: "Une erreur s'est produite lors de l'ajout du produit au panier.", error: error });
-        });
-    };
+      
 
     // /users/cart => DELETE
     exports.deleteUserCart = (req, res, next) => {
-        if (!req.isAuthenticated()) {
-          return res.status(401).json({ message: "Vous n'êtes pas authentifié." });
-        }
-        const userId = req.user.id;
-        const productId = req.params.productId;
-    
-        removeFromUserCart(userId, productId);
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({ message: "Vous n'êtes pas authentifié." });
+      }
       
-        res.status(200).json({ message: "Produit supprimé du panier avec succès." });
-      };
+      // Récupération des identifiants de l'utilisateur et du produit
+      const userId = req.user.id;
+      const productId = req.params.productId;
+      
+      // Suppression du produit du panier de l'utilisateur
+      removeFromUserCart(userId, productId);
+      
+      // Réponse indiquant la suppression réussie
+      res.status(201).json({ message: "Produit supprimé du panier avec succès." })
+    };

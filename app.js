@@ -7,6 +7,8 @@ const mongoose = require('mongoose');
 // Importe les routes
 const indexRoutes = require('./routes/index');
 const authRoutes = require('./routes/auth');
+const searchProduct = require('./routes/index');
+
 
 // Importe le controller des erreurs
 const errorController = require('./controllers/errorController');
@@ -35,7 +37,8 @@ app.use(errorController.get404);
 // gestion des erreurs 
 app.use(errorController.logErrors);
 
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(searchProduct);
+
 
 mongoose.connect('mongodb://127.0.0.1:27017/testdw3')
   .then(() => {

@@ -30,7 +30,8 @@ const userSchema = new Schema(
   },
   cart: {
     type: Array,
-    required: false
+    required: false,
+    ref: 'Product'
   }
 },
 

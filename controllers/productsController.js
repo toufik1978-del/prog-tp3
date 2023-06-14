@@ -1,4 +1,5 @@
  "use strict";
+const categorie = require('../models/categorie');
 // Récupère le modèle Product
 const Product = require('../models/product');
 
@@ -9,7 +10,7 @@ exports.getProducts = (req, res, next) => {
         console.log(products);
         res.status(200).json({
             products: products,
-            pageTitle: 'Accueil'    
+                
         });
         }
     )
@@ -39,15 +40,29 @@ exports.getProduct = (req, res, next) => {
     }
     );
 }
+// reccuperer un produit
+exports.getProductsByUserId = (req, res, next) => {
+    const userId = req.params.userId;
+    Product.find({userId : userId})
+      .then(products => {
+        res.status(200).json({ products: products });
+      })
+      .catch(err => {
+        res.status(500).json({ message: 'Erreur serveur' });
+      });
+  };
+ 
 
 // Crée un nouveau produit
 exports.createProduct = (req, res, next) => {
-    const { title, desc, price }= req.body;
+    const { title, desc, price, imageUrl, categorieId, userId }= req.body;
     const product = new Product({
         title: title,
-        desc: desc,
+        desc: desc, 
         price: price,
-        userId: req.user.userId
+        imageUrl: imageUrl,
+        categorieId: categorieId,
+        userId: userId
 
     });
     product.save()
@@ -84,17 +99,4 @@ exports.deleteProduct = (req, res, next) => {
     }
     );
 }
-// reccuperer un produit
-exports.getProductsByUserId = (req, res, next) => {
-  const userId = req.params.userId;
 
-  Product.find({ seller: userId })
-    .then(products => {
-      res.status(200).json({ products: products });
-    })
-    .catch(err => {
-     
-      res.status(500).json({ message: 'Erreur serveur' });
-    });
-};
- 

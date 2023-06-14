@@ -12,6 +12,9 @@ const isAuth = require('../middleware/is-auth');
 // /users => GET
 router.get('/users', usersController.getUsers);
 
+// /users/profil => GET
+router.get('/users/profil', isAuth, usersController.getUserProfil);
+
 // /users/userId => GET
 router.get('/users/:userId', usersController.getUser);
 
@@ -25,16 +28,19 @@ router.put('/users/:userId', isAuth, usersController.updateUser);
 router.delete('/users/:userId', isAuth, usersController.deleteUser);
 
 // /users/cart => GET
-router.get('/users/cart', usersController.getUserCart);
+router.get('/users/:userId/cart', isAuth, usersController.getUserCart);
 
 // /users/cart => Put
-router.put('/users/cart', isAuth, usersController.updateUserCart);
+router.put('/cart/:userId', isAuth, usersController.updateUserCart);
 
 // /users/cart => DELETE
-router.delete('/cart/:cartId', isAuth, usersController.deleteUserCart);
+router.delete('/cart/:productId', isAuth, usersController.deleteUserCart);
 
 // /products => GET
 router.get('/products', productsController.getProducts);
+
+// /products /:userId => GET
+router.get('/products/user/:userId', productsController.getProductsByUserId);
 
 // /products/productId => GET
 router.get('/products/:productId', productsController.getProduct);
@@ -44,9 +50,6 @@ router.post('/products',isAuth, productsController.createProduct);
 
 // /products/:productId => DELETE
 router.delete('/products/:productId', isAuth, productsController.deleteProduct);
-
-// /products => GET
-router.get('/products/user/:userId', productsController.getProductsByUserId);
 
 // categries=> GET
 router.get('/categories', categoriesController.getCategories);
@@ -64,7 +67,7 @@ router.put('/categories/:categorieId', isAuth, categoriesController.updateCatego
 router.delete('/categories/:categorieId', isAuth, categoriesController.deleteCategorie);
 
 // /search => GET
-router.get('/search', searchController.getSearchProducts);
+router.get('/search', searchController.searchProduct);
 
 // Export des routes pour utilisation dans app.js
 module.exports = router;

@@ -15,19 +15,19 @@ const productSchema = new Schema(
         type: Number,
         require: true
     },
-    imageUrl: {
+    imageUrl: [{
         type: String,
-        required: false
-    },
+        required: true
+    }],
     categorieId: {
         type: Schema.Types.ObjectId,
         ref: 'Categorie',
-        required: false
+        required: true
     },
     userId: {
         type: Schema.Types.ObjectId,
         ref: 'User',
-        required: false
+        required: true
     },
     
     isSold: {
