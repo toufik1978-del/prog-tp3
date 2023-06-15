@@ -13,6 +13,16 @@ const searchProduct = require('./routes/index');
 // Importe le controller des erreurs
 const errorController = require('./controllers/errorController');
 
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader(
+    'Access-Control-Allow-Methods',
+    'OPTIONS, GET, POST, PUT, PATCH, DELETE'
+  );
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  next();
+});
+
 // middleware pour le format JSON
 app.use(express.json()); 
 
@@ -35,6 +45,9 @@ app.use(errorController.logErrors);
 
 //recherche de produit
 app.use(searchProduct);
+
+
+const PORT = process.env.PORT || 3000;
 
 mongoose.connect(process.env.MONGODB_ATLAS)
   .then(() => {
